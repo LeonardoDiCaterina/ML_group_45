@@ -1,1 +1,6 @@
 /.DS_Store
+utils/preprocessing/__pycache__/CarDatabase.cpython-312.pyc
+.gitignore
+utils/preprocessing/__pycache__/Preprocessor.cpython-312.pyc
+.gitignore
+utils/preprocessing/__pycache__/Preprocessor_divided.cpython-312.pyc

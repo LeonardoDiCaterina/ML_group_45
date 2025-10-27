@@ -252,7 +252,7 @@ class FeaturePipeline:
         self.is_fitted = True
         return self
     
-    def transform(self, data: pd.Series) -> Union[pd.Series, pd.DataFrame]:
+    def transform(self, data: pd.Series, target_series:Optional[pd.DataFrame]= None) -> Union[pd.Series, pd.DataFrame]:
         """Transform data through all processors."""
         if not self.is_fitted:
             raise ValueError("Pipeline must be fitted before transform")
@@ -336,7 +336,7 @@ class DataPreprocessor:
         self.is_fitted = True
         return self
     
-    def transform(self, data: pd.DataFrame, features: Optional[List[str]] = None) -> Tuple[pd.DataFrame, Optional[pd.Series]]:
+    def transform(self, data: pd.DataFrame, features: Optional[List[str]] = None, target_series:Optional[pd.DataFrame]= None) -> Tuple[pd.DataFrame, Optional[pd.Series]]:
         """Transform data using fitted pipelines."""
         if not self.is_fitted:
             raise ValueError("Preprocessor must be fitted before transform")
@@ -364,9 +364,9 @@ class DataPreprocessor:
         
         return X, y
     
-    def fit_transform(self, data: pd.DataFrame, features: Optional[List[str]] = None) -> Tuple[pd.DataFrame, Optional[pd.Series]]:
+    def fit_transform(self, data: pd.DataFrame, features: Optional[List[str]] = None, target_series:Optional[pd.DataFrame]= None) -> Tuple[pd.DataFrame, Optional[pd.Series]]:
         """Fit and transform in one step."""
-        return self.fit(data).transform(data, features)
+        return self.fit(data).transform(data, features, target_series)
     
     def get_feature_info(self, feature_name: Optional[str] = None) -> Dict[str, Any]:
         """Get information about configured features."""
