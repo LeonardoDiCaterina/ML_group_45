@@ -1,0 +1,14 @@
+Feature,VIF,Accepted_x,Max_SpearmanCorr,Accepted_y,Spearman_TargetCorr,Accepted,RFE_DecisionTree,RFE_RandomForest,RFE_LR_MinMax,RFE_LR_Standard,RFE_LR_Robust,Ridge_MinMax,Ridge_Standard,Ridge_Robust,Lasso_MinMax,Lasso_Standard,Lasso_Robust,Total_Accepted,Final_Decision
+carID,4.543458809017786,True,,False,0.20631524395914805,True,False,False,False,False,False,True,True,True,True,True,True,8,Keep
+year,15.112083072022088,False,0.01173727863729903,True,0.590249149883225,True,True,True,True,True,True,True,True,True,True,True,True,13,Keep
+transmission,17.57369252643893,False,0.17862270527268903,True,0.5769167975235661,True,True,True,True,True,True,True,True,True,True,True,True,13,Keep
+mileage,1.4697943734751848,True,0.7704816698147877,False,0.5132549820919818,True,True,True,True,True,True,True,True,True,True,True,True,13,Keep
+fuelType,59.46189186012478,False,0.24924907722694206,True,0.2611249505287306,True,False,False,False,False,False,True,True,True,True,True,True,8,Keep
+tax,1.450613888099638,True,0.29880491713319746,True,0.3006818898091313,True,False,False,False,False,False,True,True,True,True,True,True,9,Keep
+mpg,1.7401661904326937,True,0.5331572655377254,True,0.3723042953949569,True,True,True,True,True,True,True,True,True,True,True,True,14,Keep
+engineSize,1.5963781606919996,True,0.5790093299557316,True,0.559002338510761,True,True,True,True,True,True,True,True,True,True,True,True,14,Keep
+paintQuality%,9.93185352657693,False,0.006204173431501348,True,0.0021228693129515313,False,False,False,False,False,False,True,True,True,True,True,True,7,Drop
+previousOwners,1.0001170369937136,True,0.004610347956267825,True,0.0010232191319412675,False,False,False,False,False,False,True,True,True,True,True,True,8,Keep
+hasDamage,1.020586890463313,True,0.005216117844697415,True,0.0010124101836343157,False,False,False,False,False,False,True,True,True,True,True,True,8,Keep
+Brand_cleaned,20.830385024712136,False,0.49535957927459007,True,0.573207719293361,True,True,True,True,True,True,True,True,True,True,True,True,13,Keep
+Brand_confidence,40.485312453805655,False,0.07832764484317943,True,0.002276616496230581,False,False,False,False,False,False,True,True,True,True,True,True,7,Drop
