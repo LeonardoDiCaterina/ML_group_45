@@ -252,7 +252,7 @@ class FeaturePipeline:
         self.is_fitted = True
         return self
     
-    def transform(self, data: pd.Series, target_series:Optional[pd.DataFrame]= None) -> Union[pd.Series, pd.DataFrame]:
+    def transform(self, data: pd.Series) -> Union[pd.Series, pd.DataFrame]:
         """Transform data through all processors."""
         if not self.is_fitted:
             raise ValueError("Pipeline must be fitted before transform")
@@ -277,10 +277,11 @@ class FeaturePipeline:
 class DataPreprocessor:
     """Main class orchestrating all preprocessing operations."""
     
-    def __init__(self, target_column: str = 'price'):
+    def __init__(self, target_column: str = 'price', verbose: bool = False):
         self.target_column = target_column
         self.feature_pipelines: Dict[str, FeaturePipeline] = {}
         self.is_fitted = False
+        self.verbose = verbose
     
     def add_feature_pipeline(self, feature_name: str, 
                            missing_strategy: Optional[str] = None,
@@ -328,7 +329,7 @@ class DataPreprocessor:
         
         for feature_name, pipeline in self.feature_pipelines.items():
             if feature_name in data.columns:
-                print(f"✓ Fitting pipeline for '{feature_name}'")
+                print(f"✓ Fitting pipeline for '{feature_name}'") if self.verbose else None
                 pipeline.fit(data[feature_name], target=target)
             else:
                 warnings.warn(f"Feature '{feature_name}' not found in data")
@@ -336,7 +337,7 @@ class DataPreprocessor:
         self.is_fitted = True
         return self
     
-    def transform(self, data: pd.DataFrame, features: Optional[List[str]] = None, target_series:Optional[pd.DataFrame]= None) -> Tuple[pd.DataFrame, Optional[pd.Series]]:
+    def transform(self, data: pd.DataFrame, features: Optional[List[str]] = None) -> Tuple[pd.DataFrame, Optional[pd.Series]]:
         """Transform data using fitted pipelines."""
         if not self.is_fitted:
             raise ValueError("Preprocessor must be fitted before transform")
@@ -346,7 +347,7 @@ class DataPreprocessor:
         
         for feature_name in features_to_process:
             if feature_name in self.feature_pipelines and feature_name in data.columns:
-                print(f"✓ Transforming '{feature_name}'")
+                print(f"✓ Transforming '{feature_name}'") if self.verbose else None
                 
                 pipeline = self.feature_pipelines[feature_name]
                 transformed = pipeline.transform(data[feature_name])
@@ -364,9 +365,9 @@ class DataPreprocessor:
         
         return X, y
     
-    def fit_transform(self, data: pd.DataFrame, features: Optional[List[str]] = None, target_series:Optional[pd.DataFrame]= None) -> Tuple[pd.DataFrame, Optional[pd.Series]]:
+    def fit_transform(self, data: pd.DataFrame, features: Optional[List[str]] = None) -> Tuple[pd.DataFrame, Optional[pd.Series]]:
         """Fit and transform in one step."""
-        return self.fit(data).transform(data, features, target_series)
+        return self.fit(data).transform(data, features)
     
     def get_feature_info(self, feature_name: Optional[str] = None) -> Dict[str, Any]:
         """Get information about configured features."""
@@ -394,7 +395,7 @@ class DataPreprocessor:
                 'feature_pipelines': self.feature_pipelines,
                 'is_fitted': self.is_fitted
             }, f)
-        print(f"✓ Pipeline saved to '{filepath}'")
+        print(f"✓ Pipeline saved to '{filepath}'") if self.verbose else None
     
     def load_pipeline(self, filepath: str):
         """Load a preprocessing pipeline."""
@@ -404,4 +405,4 @@ class DataPreprocessor:
         self.target_column = data['target_column']
         self.feature_pipelines = data['feature_pipelines']
         self.is_fitted = data['is_fitted']
-        print(f"✓ Pipeline loaded from '{filepath}'")
+        print(f"✓ Pipeline loaded from '{filepath}'") if self.verbose else None

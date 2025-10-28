@@ -4,3 +4,9 @@ utils/preprocessing/__pycache__/CarDatabase.cpython-312.pyc
 utils/preprocessing/__pycache__/Preprocessor.cpython-312.pyc
 .gitignore
 utils/preprocessing/__pycache__/Preprocessor_divided.cpython-312.pyc
+utils/model_evaluation/__pycache__/regression_evaluation.cpython-312.pyc
+.gitignore
+utils/model_submission/__pycache__/model_submitter.cpython-312.pyc
+utils/feature_selection/__pycache__/feature_selection.cpython-312.pyc
+.gitignore
+utils/preprocessing/__pycache__/Cardinal_Preprocessor.cpython-312.pyc
