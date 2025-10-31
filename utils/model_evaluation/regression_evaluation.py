@@ -8,7 +8,7 @@ from sklearn.metrics import ( # type: ignore
     mean_squared_log_error, explained_variance_score
 )
 
-def get_regression_metrics(y_true, y_pred):
+def get_regression_metrics(y_true:np.ndarray, y_pred:np.ndarray) -> pd.DataFrame:
     """Calculates and formats key regression metrics into a Pandas DataFrame."""
     
     mae = mean_absolute_error(y_true, y_pred)
@@ -42,9 +42,21 @@ def get_regression_metrics(y_true, y_pred):
     
     return report_df
 
-# --- Visualization ---
-def plot_regression_diagnostics(y_true, y_pred, title = "Regression Diagnostics"):
-    """Generates diagnostic plots for regression analysis."""
+def plot_regression_diagnostics(y_true:np.ndarray, y_pred:np.ndarray, title:str = "Regression Diagnostics", save_img:bool = False) -> None:
+    """Generates diagnostic plots for regression analysis.
+
+    Args:
+        y_true (np.ndarray): True target values.
+        y_pred (np.ndarray): Predicted target values.
+        title (str): Title for the plots.
+    
+    Returns:
+        None:
+    
+    Plots:
+        1. Predicted vs. True Values Scatter Plot
+        2. Distribution of Residuals (Errors) Histogram/KDE Plot
+    """
     residuals = y_true - y_pred
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     fig.suptitle(title, fontsize=16)
@@ -71,3 +83,6 @@ def plot_regression_diagnostics(y_true, y_pred, title = "Regression Diagnostics"
 
     plt.tight_layout()
     plt.show()
+    
+    if save_img:
+        fig.savefig(f"{title.replace(' ', '_').lower()}_diagnostics.png", dpi=300)

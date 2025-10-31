@@ -1,6 +1,8 @@
 
 #! pip install / conda install rapidfuzz
 #! pip install kagglehub
+from typing import List, Dict, Tuple
+
 import kagglehub # type:ignore 
 import os
 import pandas as pd # type:ignore 
@@ -10,11 +12,17 @@ import random
 import json
 import re
 from collections import defaultdict, Counter
-from tqdm import tqdm  # Add this import at the top of the file
+from tqdm import tqdm  # type:ignore
 
-def create_optimized_database(car_data, max_model_words=2):
+def create_optimized_database(car_data:List[Dict], max_model_words: int = 2) -> Dict:
     """
     Create an optimized database with frequency-based simplification and manual overrides
+    
+    Args:
+        car_data (List[Dict]): Original car database with 'Make' and 'Models'
+        max_model_words (int): Maximum number of words to keep in simplified model names
+    Returns:
+        Dict: Simplified car database with canonical names, aliases, and simplified models
     """
     simplified_db = {}
     
@@ -83,8 +91,16 @@ def create_optimized_database(car_data, max_model_words=2):
         
         word_importance[word] = importance
     
-    def simplify_model_name(words, max_words=max_model_words):
-        """Simplify model name by keeping most important words"""
+    def simplify_model_name(words: List[str], max_words:int=max_model_words) -> str:
+        """
+            Simplify model name by keeping most important words based on frequency analysis
+            
+            Args:
+                words (List[str]): List of words in the model name
+                max_words (int): Maximum number of words to keep
+            Returns:
+                str: Simplified model name
+        """
         if len(words) <= max_words:
             return ' '.join(words)
         
@@ -166,7 +182,7 @@ class ProductionCarMatcher:
     strong brand constraints, and multiple fallback strategies
     """
     
-    def __init__(self, simplified_db):
+    def __init__(self, simplified_db: Dict[str, List[str]]):
         self.db = simplified_db
         self.make_lookup = self._create_make_lookup()
         
@@ -179,7 +195,7 @@ class ProductionCarMatcher:
                 lookup[alias] = canonical_make
         return lookup
     
-    def _normalize_input(self, text):
+    def _normalize_input(self, text: str) -> str:
         """Normalize input text"""
         if not text or pd.isna(text):
             return ""
@@ -188,7 +204,7 @@ class ProductionCarMatcher:
         text = re.sub(r'\s+', ' ', text)
         return text
     
-    def find_best_make_match(self, input_make, threshold=70):
+    def find_best_make_match(self, input_make: str, threshold:int=70) -> tuple[str, int]:
         """Find best make match using fuzzy matching"""
         if not input_make:
             return None, 0
@@ -217,7 +233,7 @@ class ProductionCarMatcher:
         
         return best_match, best_score
     
-    def find_best_model_match(self, input_model, make=None, threshold=70):
+    def find_best_model_match(self, input_model: str, make:str=None, threshold:float=70.0) -> Tuple[str, float, str]:
         """Find best model match with enhanced numeric matching"""
         if not input_model:
             return None, 0, None
@@ -291,8 +307,8 @@ class ProductionCarMatcher:
         
         return best_match, best_score, best_make
     
-    def clean_make_model_pair(self, input_make, input_model, 
-                            make_threshold=70, model_threshold=70):
+    def clean_make_model_pair(self, input_make: str, input_model: str,
+                            make_threshold:float=70.0, model_threshold=70.0) -> Dict:
         """Clean a make-model pair with multiple fallback strategies"""
         
         # Find best make match
@@ -329,7 +345,7 @@ class ProductionCarMatcher:
             'confidence': (make_score + model_score) / 2 if make_score and model_score else 0
         }
     
-    def clean_dataframe(self, df, make_col='make', model_col='model'):
+    def clean_dataframe(self, df: pd.DataFrame, make_col:str='make', model_col:str='model') -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Clean car make and model columns in a DataFrame"""
         results = []
         
@@ -354,7 +370,7 @@ class ProductionCarMatcher:
         
         return df_cleaned, results_df
     
-    def get_cleaning_stats(self, results_df):
+    def get_cleaning_stats(self, results_df: pd.DataFrame) -> Dict:
         """Get statistics about the cleaning process"""
         stats = {
             'total_records': len(results_df),

@@ -1,13 +1,16 @@
 
 
+from typing import Callable, Dict, List
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from sklearn.model_selection import RepeatedKFold
 from sklearn.ensemble import RandomForestRegressor
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import tqdm
 
-def evaluate_model_repeated_kfold(model, raw_train_data, preprocessor, n_splits=10, n_repeats=10, random_state=42, metric:callable=mean_squared_error):
+def evaluate_model_repeated_kfold(model, raw_train_data:pd.DataFrame,preprocessor,
+                                  n_splits:int=10, n_repeats:int=10, random_state:int=42, metric:Callable=mean_squared_error):
     """
     Evaluates a model using Repeated K-Fold Cross-Validation, returning the 
     mean RMSE and its 95% confidence interval.
@@ -66,13 +69,14 @@ def evaluate_model_repeated_kfold(model, raw_train_data, preprocessor, n_splits=
     return mean_score, conf_interval
 
 
-def run_hyperparameter_tuning(train_data,
+def run_hyperparameter_tuning(train_data:pd.DataFrame,
                               preprocessor,
-                              list_of_dictionaries,
-                              metric=mean_squared_error,
-                              model_class=RandomForestRegressor,
-                              n_splits=2, n_repeats=2,
-                              random_state=42):
+                              list_of_dictionaries:List[Dict],
+                              metric:Callable=mean_squared_error,
+                              model_class:Callable=RandomForestRegressor,
+                              n_splits:int=2,
+                              n_repeats:int=2,
+                              random_state:int=42):
     """
     Performs Repeated K-Fold tuning for RandomForestRegressor and plots results.
     Args:

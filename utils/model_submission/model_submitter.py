@@ -35,9 +35,9 @@ class ModelSubmitter:
             pickle.dump(self.model, f)
         print(f"Model saved to {model_filename}")
         if submit_model:
-            self.submit_trough_api(filename=full_filename, filepath=self.filepath, message=submint_msg)
+            self.submit_trough_api(fullfilename=filename, filepath=self.filepath, message=submint_msg)
     @staticmethod
-    def submit_trough_api(filename:str ='submission.csv', filepath:str = '', message:str ='Group 45 Model Submission'):
+    def submit_trough_api(fullfilename:str , message:str ='Group 45 Model Submission'):
         """
         Submits the given submission file to Kaggle using the Kaggle API.
 
@@ -52,8 +52,12 @@ class ModelSubmitter:
             FileNotFoundError: if the submission file does not exist.
         """
         
-        if not os.path.exists(f"{filepath}{filename}"):
-            raise FileNotFoundError(f"Submission file {filepath}{filename} not found. Please save the submission first.")
+        if not os.path.exists(f"{fullfilename}"):
+            raise FileNotFoundError(f"Submission file {fullfilename} not found. Please save the submission first.")
         
-        system_command = f'kaggle competitions submit -c cars4you -f {filepath}{filename} -m "{message}"'
-        os.system(system_command)
+        system_command = f'kaggle competitions submit -c cars4you -f {fullfilename} -m "{message}"'
+        ret = os.system(system_command)
+        if ret == 0:
+            print(f"Submission {fullfilename} successfully sent to Kaggle.")
+        else:
+            print(f"Failed to submit {fullfilename} to Kaggle with code {ret}. Please check the Kaggle API configuration.")
