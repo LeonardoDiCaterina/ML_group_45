@@ -88,4 +88,4 @@ To run the notebooks in this project, you will need the libraries listed in `req
 ## 7. Group Members
 
 * [Leonardo Di Caterina]
-* 
+* [Rodrigo Sardinha]
