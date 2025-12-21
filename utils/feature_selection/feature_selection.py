@@ -1,11 +1,11 @@
 # 📦 IMPORTS
 # --- General-purpose libraries ---
 import os                     # File and directory operations
-import pandas as pd            # Data manipulation and analysis
-import numpy as np             # Numerical computations
+import pandas as pd           # Data manipulation and analysis
+import numpy as np            # Numerical computations
 
 # --- Visualization libraries ---
-import seaborn as sns          # Advanced data visualization (heatmaps, boxplots, etc.)
+import seaborn as sns         # Advanced data visualization (heatmaps, boxplots, etc.)
 import matplotlib.pyplot as plt  # Plotting library
 
 # --- Scikit-learn: data splitting and preprocessing ---
@@ -20,8 +20,8 @@ from sklearn.tree import DecisionTreeRegressor        # Simple tree-based regres
 
 # --- Scikit-learn: classification models ---
 from sklearn.linear_model import LogisticRegression   # Linear model for classification
-from sklearn.tree import DecisionTreeClassifier        # Decision tree classifier
-from sklearn.ensemble import RandomForestClassifier    # Random forest classifier
+from sklearn.tree import DecisionTreeClassifier       # Decision tree classifier
+from sklearn.ensemble import RandomForestClassifier   # Random forest classifier
 
 # --- Statistical and diagnostic tools ---
 from statsmodels.stats.outliers_influence import variance_inflation_factor  # Variance Inflation Factor (multicollinearity)
@@ -33,7 +33,7 @@ from sklearn.feature_selection import mutual_info_regression, f_regression, chi2
 # --- Scikit-learn: feature selection with regularization ---
 from sklearn.feature_selection import SelectFromModel
 
-# --- Lasso regression (já tem LassoCV, mas precisa do Lasso básico) ---
+# --- Lasso regression (already has LassoCV, but needs basic Lasso) ---
 from sklearn.linear_model import Lasso
 
 # --- Visualization theme ---
@@ -41,8 +41,8 @@ sns.set_theme(style="whitegrid", context="notebook")
 
 class NumericalFeatureSelector:
     """
-    Classe para seleção de features numéricas em problemas de regressão.
-    Usa apenas dados de treino para evitar data leakage.
+    Class for selecting numerical features in regression problems.
+    Uses only training data to avoid data leakage.
     """
 
     def __init__(self, X_train, y_train, numeric_features, X_val=None, y_val=None, vif_threshold=5, corr_threshold=0.7):
@@ -54,7 +54,7 @@ class NumericalFeatureSelector:
         self.vif_threshold = vif_threshold
         self.corr_threshold = corr_threshold
 
-    # Multicolinearidade / Redundância
+    # Multicollinearity / Redundancy
     def vif_analysis(self):
         X = self.X_train.dropna().copy()
         vif_data = pd.DataFrame()
@@ -73,7 +73,7 @@ class NumericalFeatureSelector:
         redundancy_df["Accepted"] = redundancy_df["Max_SpearmanCorr"] < self.corr_threshold
         return redundancy_df
 
-    # Correlação com o Target (Relevância)
+    # Correlation with Target (Relevance)
     def spearman_relevance(self, threshold=0.1):
         corr_values = []
         for col in self.X_train.columns:
@@ -112,7 +112,7 @@ class NumericalFeatureSelector:
             results.append(df)
         return results
 
-    # Regularização Ridge/Lasso
+    # Ridge/Lasso Regularization
     def regularization_model(self, model_type="ridge", scaler=None, threshold=0.01):
         X = self.X_train.copy()
         if scaler:
@@ -147,7 +147,7 @@ class NumericalFeatureSelector:
             results.append(df)
         return results
 
-    # Tabela Final
+    # Final Table
     def compile_results(self):
         results = [
             self.vif_analysis(),
@@ -179,9 +179,9 @@ class CategoricalFeatureSelector:
         self.corr_threshold = corr_threshold
         self.importance_threshold = importance_threshold
 
-    # 1️⃣ Multicolinearidade / Redundância (Para Dummy Variables)
+    # 1️⃣ Multicollinearity / Redundancy (For Dummy Variables)
     def correlation_redundancy(self):
-        """Detecta features dummy altamente correlacionadas"""
+        """Detects highly correlated dummy features"""
         corr = self.X_train.corr().abs()
         upper = corr.where(np.triu(np.ones(corr.shape), k=1).astype(bool))
         
@@ -192,9 +192,9 @@ class CategoricalFeatureSelector:
         redundancy_df["Accepted"] = redundancy_df["Max_PearsonCorr"] < self.corr_threshold
         return redundancy_df
 
-    # 2️⃣ Relevância com o Target
+    # 2️⃣ Relevance with Target
     def mutual_information_relevance(self, threshold=0.01):
-        """Mutual Information é ideal para relações não-lineares com categóricas"""
+        """Mutual Information is ideal for non-linear relationships with categorical data"""
         mi_scores = mutual_info_regression(self.X_train, self.y_train, random_state=42)
         
         mi_df = pd.DataFrame({
@@ -205,7 +205,7 @@ class CategoricalFeatureSelector:
         return mi_df
 
     def anova_relevance(self, threshold=0.05):
-        """ANOVA F-test para relevância estatística"""
+        """ANOVA F-test for statistical relevance"""
         f_scores, p_values = f_regression(self.X_train, self.y_train)
         
         anova_df = pd.DataFrame({
@@ -214,19 +214,7 @@ class CategoricalFeatureSelector:
             "P_Value": p_values
         })
         anova_df["Accepted"] = anova_df["P_Value"] < threshold
-        return anova_df
 
-    # 3️⃣ Recursive Feature Elimination (RFE)
-    def rfe_model(self, model, scaler=None):
-        X = self.X_train.copy()
-        if scaler:
-            X = scaler.fit_transform(X)
-        rfe = RFE(model)
-        rfe.fit(X, self.y_train)
-        results = pd.DataFrame({"Feature": self.X_train.columns, "Accepted": rfe.support_})
-        return results
-
-    def rfe_all_models(self):
         models = {
             "RFE_DecisionTree": DecisionTreeRegressor(random_state=42),
             "RFE_RandomForest": RandomForestRegressor(random_state=42, n_estimators=100),
@@ -242,9 +230,9 @@ class CategoricalFeatureSelector:
             results.append(df)
         return results
 
-    # 4️⃣ Regularização Lasso (Ideal para Dummy Variables)
+    # 4️⃣ Lasso Regularization (Ideal for Dummy Variables)
     def lasso_model(self, scaler=None, threshold=0.01):
-        """Lasso é excelente para seleção de features dummy"""
+        """Lasso is excellent for dummy feature selection"""
         X = self.X_train.copy()
         if scaler:
             X = scaler.fit_transform(X)
@@ -274,9 +262,9 @@ class CategoricalFeatureSelector:
             results.append(df)
         return results
 
-    # 5️⃣ Feature Importance com Random Forest
+    # 5️⃣ Feature Importance with Random Forest
     def random_forest_importance(self, threshold=0.01):
-        """Feature importance nativo do Random Forest"""
+        """Native Random Forest feature importance"""
         rf = RandomForestRegressor(n_estimators=100, random_state=42)
         rf.fit(self.X_train, self.y_train)
         
@@ -287,9 +275,9 @@ class CategoricalFeatureSelector:
         importance_df["Accepted"] = importance_df["RF_Importance"] > threshold
         return importance_df
 
-    # 6️⃣ Tabela Final Consolidada
+    # 6️⃣ Consolidated Final Table
     def compile_results(self):
-        # Coletar todos os resultados
+        # Collect all results
         results = [
             self.correlation_redundancy()[["Feature", "Accepted"]].rename(columns={"Accepted": "Low_Correlation"}),
             self.mutual_information_relevance()[["Feature", "Accepted"]].rename(columns={"Accepted": "High_MI"}),
@@ -299,12 +287,12 @@ class CategoricalFeatureSelector:
             *self.lasso_all_scalers()
         ]
 
-        # Merge todos os resultados
+        # Merge all results
         merged = results[0][["Feature"]]
         for df in results:
             merged = merged.merge(df, on="Feature", how="left")
 
-        # Calcular decisão final
+        # Calculate final decision
         accept_cols = [c for c in merged.columns if c != "Feature"]
         merged["Total_Accepted"] = merged[accept_cols].sum(axis=1)
         merged["Accept_Rate"] = merged["Total_Accepted"] / len(accept_cols)
@@ -312,9 +300,9 @@ class CategoricalFeatureSelector:
         
         return merged
 
-    # 7️⃣ Método para obter features selecionadas
+    # 7️⃣ Method to get selected features
     def get_selected_features(self):
-        """Retorna lista das features selecionadas"""
+        """Returns list of selected features"""
         results = self.compile_results()
         selected = results[results["Final_Decision"] == "Keep"]["Feature"].tolist()
         
@@ -323,9 +311,9 @@ class CategoricalFeatureSelector:
         
         return selected
 
-    # 8️⃣ Plot de Importâncias
+    # 8️⃣ Feature Importance Plot
     def plot_feature_importance(self, top_n=15):
-        """Plot das importâncias das features"""
+        """Plot of feature importances"""
         fig, axes = plt.subplots(2, 2, figsize=(20, 15))
         
         # Mutual Information
