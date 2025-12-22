@@ -11,10 +11,137 @@ from sklearn.base import clone
 from sklearn.metrics import (
     r2_score,
     mean_squared_error,
+    mean_absolute_error,
+    mean_absolute_percentage_error,
     accuracy_score
 )
 
 warnings.filterwarnings("ignore")
+
+
+
+# ---------------------------------------------------------------------
+# Regression metrics helper
+# ---------------------------------------------------------------------
+def compute_regression_metrics(y_true, y_pred, n_features: int):
+    """Compute the metrics used in the project ablation pipeline.
+
+    Returns a dict with keys:
+    r2, adjusted_r2, rmse, mae, mse, mape
+    """
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+
+    mse = mean_squared_error(y_true, y_pred)
+    rmse = float(np.sqrt(mse))
+    mae = mean_absolute_error(y_true, y_pred)
+
+    # mape: sklearn handles zeros by returning inf; we guard manually.
+    denom = np.where(y_true == 0, np.nan, y_true)
+    mape = float(np.nanmean(np.abs((y_true - y_pred) / denom)) * 100.0)
+
+    r2 = r2_score(y_true, y_pred)
+
+    # adjusted R2 uses n_features from the *raw* feature set used in this run
+    n = len(y_true)
+    p = int(n_features)
+    if n - p - 1 > 0:
+        adjusted_r2 = 1.0 - (1.0 - r2) * (n - 1) / (n - p - 1)
+    else:
+        adjusted_r2 = np.nan
+
+    return {
+        "r2": float(r2),
+        "adjusted_r2": float(adjusted_r2) if adjusted_r2 == adjusted_r2 else np.nan,
+        "rmse": float(rmse),
+        "mae": float(mae),
+        "mse": float(mse),
+        "mape": float(mape) if mape == mape else np.nan,
+    }
+
+
+# ---------------------------------------------------------------------
+# Cross-validated ablation runner
+# ---------------------------------------------------------------------
+def run_ablation_cv(
+    X: pd.DataFrame,
+    y,
+    model=None,
+    builder=None,
+    cv_folds: int = 5,
+    random_state: int = 42,
+    features_to_test=None,
+    baseline_name: str = "Baseline",
+    verbose: bool = True,
+):
+    """Run k-fold CV ablation (remove 1 feature at a time) and return a results DataFrame.
+
+    This produces the columns: model_variant, features_removed, fold, r2, adjusted_r2, rmse, mae, mse, mape
+
+    """
+    if not isinstance(X, pd.DataFrame):
+        raise TypeError("X must be a pandas DataFrame so we can drop features by name.")
+
+    y_arr = np.asarray(y)
+    if y_arr.ndim != 1:
+        y_arr = y_arr.reshape(-1)
+
+    all_cols = list(X.columns)
+    if features_to_test is None:
+        features_to_test = all_cols
+    else:
+        features_to_test = [f for f in features_to_test if f in all_cols]
+
+    if model is None and builder is None:
+        raise ValueError("Provide either 'model' or 'builder'.")
+    if model is not None and builder is not None:
+        raise ValueError("Provide only one of 'model' or 'builder', not both.")
+
+    kf = KFold(n_splits=cv_folds, shuffle=True, random_state=random_state)
+    rows = []
+
+    def _make_estimator(use_cols):
+        if builder is not None:
+            return builder(use_cols)
+        return clone(model)
+
+    start = time.time()
+    for fold, (tr_idx, va_idx) in enumerate(kf.split(X), start=1):
+        X_tr, X_va = X.iloc[tr_idx], X.iloc[va_idx]
+        y_tr, y_va = y_arr[tr_idx], y_arr[va_idx]
+
+        # Baseline
+        base_cols = all_cols
+        est = _make_estimator(base_cols)
+        est.fit(X_tr[base_cols], y_tr)
+        pred = est.predict(X_va[base_cols])
+        metrics = compute_regression_metrics(y_va, pred, n_features=len(base_cols))
+        rows.append({
+            "model_variant": baseline_name,
+            "features_removed": "none",
+            "fold": fold,
+            **metrics
+        })
+
+        # Ablations
+        for feat in features_to_test:
+            use_cols = [c for c in all_cols if c != feat]
+            est = _make_estimator(use_cols)
+            est.fit(X_tr[use_cols], y_tr)
+            pred = est.predict(X_va[use_cols])
+            metrics = compute_regression_metrics(y_va, pred, n_features=len(use_cols))
+            rows.append({
+                "model_variant": f"drop_{feat}",
+                "features_removed": feat,
+                "fold": fold,
+                **metrics
+            })
+
+        if verbose:
+            elapsed = time.time() - start
+            print(f"[ablation_cv] fold {fold}/{cv_folds} done ({elapsed:.1f}s elapsed)")
+
+    return pd.DataFrame(rows)
 
 
 class ProgressiveAblationSelector:
