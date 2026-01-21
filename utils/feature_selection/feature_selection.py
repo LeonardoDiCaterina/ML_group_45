@@ -179,9 +179,9 @@ class CategoricalFeatureSelector:
         self.corr_threshold = corr_threshold
         self.importance_threshold = importance_threshold
 
-    # 1️⃣ Multicollinearity / Redundancy (For Dummy Variables)
+    # 1️⃣ Multicollinearity / Redundancy
     def correlation_redundancy(self):
-        """Detects highly correlated dummy features"""
+        """Detects highly correlated features"""
         corr = self.X_train.corr().abs()
         upper = corr.where(np.triu(np.ones(corr.shape), k=1).astype(bool))
         
@@ -215,6 +215,19 @@ class CategoricalFeatureSelector:
         })
         anova_df["Accepted"] = anova_df["P_Value"] < threshold
 
+        return anova_df
+
+    # 3️⃣ Recursive Feature Elimination (RFE)
+    def rfe_model(self, model, scaler=None):
+        X = self.X_train.copy()
+        if scaler:
+            X = scaler.fit_transform(X)
+        rfe = RFE(model)
+        rfe.fit(X, self.y_train)
+        results = pd.DataFrame({"Feature": self.X_train.columns, "Accepted": rfe.support_})
+        return results
+
+    def rfe_all_models(self):
         models = {
             "RFE_DecisionTree": DecisionTreeRegressor(random_state=42),
             "RFE_RandomForest": RandomForestRegressor(random_state=42, n_estimators=100),
@@ -230,9 +243,9 @@ class CategoricalFeatureSelector:
             results.append(df)
         return results
 
-    # 4️⃣ Lasso Regularization (Ideal for Dummy Variables)
+
+    # 4️⃣ Lasso Regularization
     def lasso_model(self, scaler=None, threshold=0.01):
-        """Lasso is excellent for dummy feature selection"""
         X = self.X_train.copy()
         if scaler:
             X = scaler.fit_transform(X)
