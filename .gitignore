@@ -18,3 +18,6 @@ Data/.DS_Store
 Data/train.csv
 Data/test.csv
 Data/.DS_Store
+utils/.DS_Store
+utils/__pycache__/__init__.cpython-312.pyc
+Data/vehicle models.json

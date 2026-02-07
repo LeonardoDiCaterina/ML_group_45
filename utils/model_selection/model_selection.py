@@ -132,7 +132,7 @@ def run_hyperparameter_tuning(train_data:pd.DataFrame,
     plt.bar(x, mean_scores, yerr=conf_intervals, capsize=5, color='teal', alpha=0.8)
     
     plt.xticks(x, labels, rotation=45, ha='right')
-    plt.ylabel('RMSE (Root Mean Squared Error)')
+    plt.ylabel(f'Mean {metric.__name__} Score')
     plt.title(f'{model_class.__name__} Hyperparameter Tuning Results (Repeated K-Fold)')
     plt.grid(axis='y', linestyle='--', alpha=0.5)
     plt.tight_layout()
@@ -142,6 +142,6 @@ def run_hyperparameter_tuning(train_data:pd.DataFrame,
     best_params = list_of_dictionaries[np.argmin([s[0] for s in scores])]
     best_rmse  = min([s[0] for s in scores])
     
-    print(f"\nOptimization Complete. Best Parameters: {best_params} with Mean RMSE={best_rmse:.4f}")
+    print(f"\nOptimization Complete. Best Parameters: {best_params} with Mean {metric.__name__}={best_rmse:.4f}")
     
     return scores, best_params
